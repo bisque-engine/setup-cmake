@@ -1,0 +1,72 @@
+name: Setup CMake
+description: Fetches and installs the requested or latest CMake version
+branding:
+  icon: package
+  color: orange
+inputs:
+  cmake-version:
+    description: The version to request
+    default: '' # will select "latest" release unless version is specified
+
+runs:
+  using: composite
+  steps:
+    - name: Authenticate GitHub CLI
+      shell: pwsh
+      run: Write-Output ${{github.token}} | gh auth login --with-token
+    - name: Get CMake Release Information
+      id: information
+      shell: pwsh
+      run: |
+        $Arch = switch ("${{runner.arch}}") {
+          { $IsMacOS } { "universal" }
+          "X64" { "x86_64" }
+          "ARM64" { if ($IsWindows) { $PSItem.ToLower() } else { "aarch64" } }
+          default {
+            Write-Output "::error title=Unsupported Platform::Unknown or Unsupported architecture"
+            exit 1
+          }
+        }
+        $Release = gh release view "${{inputs.cmake-version}}" --repo kitware/cmake --json tagName,assets
+        $Asset = [PSCustomObject](${Release}
+                | jq --arg os "${{runner.os}}" --arg arch "${Arch}" --from-file ${{github.action_path}}/assets.jq
+                | ConvertFrom-Json)
+        Add-Content -Path ${env:GITHUB_OUTPUT} -Value "archive=$($Asset.name)"
+        Add-Content -Path ${env:GITHUB_OUTPUT} -Value "url=$($Asset.url)"
+        Add-Content -Path ${env:GITHUB_OUTPUT} -Value "key=$($Asset.id)"
+    - name: Restore Cache
+      id: restore
+      uses: actions/cache/restore@v5
+      with:
+        path: ${{runner-temp}}/${{steps.information.outputs.archive}}
+        key: ${{steps.information.outputs.key}}
+    - name: Download Archive
+      if: ${{ !steps.restore.outputs.cache-hit || steps.restore.outputs.cache-hit == 'false' }}
+      shell: pwsh
+      run: >-
+        curl --silent --failure --show-error
+        --location
+        --remote-name
+        --output-dir ${{runner.temp}}
+        "${{steps.information.outputs.url}}"
+    - name: Save Archive
+      if: ${{ !steps.restore.outputs.cache-hit || steps.restore.outputs.cache-hit == 'false' }}
+      uses: actions/cache/save@v5
+      with:
+        path: ${{runner.temp}}/${{steps.information.outputs.archive}}
+        key: ${{steps.information.outputs.key}}
+    - name: Extract CMake
+      shell: pwsh
+      run: >-
+        tar
+        --extract
+        --gunzip
+        --strip-components=$(if ($IsMacOS) { 3 } else { 1 })
+        --directory "${{runner.temp}}/cmake-${{inputs.version}}-${{runner.arch}}"
+        "${{runner.temp}}/${{steps.information.outputs.archive}}"
+    - name: Set System PATH
+      shell: pwsh
+      run: >-
+        Add-Content
+        -Path "${env:GITHUB_PATH}"
+        -Value (Get-ChildItem "${{runner.temp}}/cmake-${{inputs.version}}-${{runner.arch}}")
