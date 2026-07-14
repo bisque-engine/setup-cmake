@@ -31,12 +31,10 @@ runs:
         $Asset = [PSCustomObject](${Release}
                 | jq --arg os "${{runner.os}}" --arg arch "${Arch}" --from-file ${{github.action_path}}/assets.jq
                 | ConvertFrom-Json)
-        $Arguments = @{ Path = "${env:GITHUB_OUTPUT}"; Verbose = $true; Encoding =  "UTF8" }
+        $Arguments = @{ Path = "${env:GITHUB_OUTPUT}"; Encoding =  "UTF8" }
         Add-Content @Arguments -Value "archive=$($Asset.name)"
         Add-Content @Arguments -Value "url=$($Asset.url)"
         Add-Content @Arguments -Value "key=$($Asset.id)"
-    - shell: pwsh
-      run: echo "${{toJson(steps.information.outputs)}}"
     - name: Restore Cache
       id: restore
       uses: actions/cache/restore@v5
@@ -66,7 +64,7 @@ runs:
         --gunzip
         --strip-components=$(if ($IsMacOS) { 3 } else { 1 })
         --directory "${{runner.temp}}/cmake-${{inputs.version}}-${{runner.arch}}"
-        "${{runner.temp}}/${{steps.information.outputs.archive}}"
+        --file "${{runner.temp}}/${{steps.information.outputs.archive}}"
     - name: Set System PATH
       shell: pwsh
       run: >-
