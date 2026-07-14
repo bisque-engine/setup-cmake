@@ -38,7 +38,7 @@ runs:
       id: restore
       uses: actions/cache/restore@v5
       with:
-        path: ${{runner-temp}}/${{steps.information.outputs.archive}}
+        path: ${{runner.temp}}/${{steps.information.outputs.archive}}
         key: ${{steps.information.outputs.key}}
     - name: Download Archive
       if: ${{ !steps.restore.outputs.cache-hit || steps.restore.outputs.cache-hit == 'false' }}
