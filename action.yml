@@ -31,11 +31,13 @@ runs:
         $Asset = [PSCustomObject](${Release}
                 | jq --arg os "${{runner.os}}" --arg arch "${Arch}" --from-file ${{github.action_path}}/assets.jq
                 | ConvertFrom-Json)
-        $Arguments = @{ Path = "${env:GITHUB_OUTPUT}"; Encoding =  "UTF8" }
+        if ($IsMacOS) { Set-PSDebug -Trace 2 }
+        $Arguments = @{ Path = "${env:GITHUB_OUTPUT}"; Encoding = "UTF8" }
         Add-Content @Arguments -Value "archive=$($Asset.name)"
         Add-Content @Arguments -Value "url=$($Asset.url)"
         Add-Content @Arguments -Value "key=$($Asset.id)"
         Add-Content @Arguments -Value "path=cmake-${{inputs.cmake-version}}-${Arch}"
+        if ($IsMacOS) { Set-PSDebug -Off }
     - name: Restore Cache
       id: restore
       uses: actions/cache/restore@v6
