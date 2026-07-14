@@ -35,6 +35,7 @@ runs:
         Add-Content @Arguments -Value "archive=$($Asset.name)"
         Add-Content @Arguments -Value "url=$($Asset.url)"
         Add-Content @Arguments -Value "key=$($Asset.id)"
+        Add-Content @Arguments -Value "path=cmake-${{inputs.cmake-version}}-${Arch}"
     - name: Restore Cache
       id: restore
       uses: actions/cache/restore@v5
@@ -56,6 +57,9 @@ runs:
       with:
         path: ${{runner.temp}}/${{steps.information.outputs.archive}}
         key: ${{steps.information.outputs.key}}
+    - name: Prepare Tool Directory
+      shell: pwsh
+      run: New-Item -Path "${{runner.temp}}/${{steps.information.outputs.path}}" -ItemType Directory
     - name: Extract CMake
       shell: pwsh
       run: >-
@@ -63,11 +67,11 @@ runs:
         --extract
         --gunzip
         --strip-components=$(if ($IsMacOS) { 3 } else { 1 })
-        --directory "${{runner.temp}}/cmake-${{inputs.version}}-${{runner.arch}}"
+        --directory "${{runner.temp}}/${{steps.information.outputs.path}}"
         --file "${{runner.temp}}/${{steps.information.outputs.archive}}"
     - name: Set System PATH
       shell: pwsh
       run: >-
         Add-Content
         -Path "${env:GITHUB_PATH}"
-        -Value (Get-ChildItem "${{runner.temp}}/cmake-${{inputs.version}}-${{runner.arch}}")
+        -Value (Get-ChildItem "${{runner.temp}}/${{steps.information.outputs.path}}/bin")
