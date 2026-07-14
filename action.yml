@@ -44,7 +44,7 @@ runs:
       if: ${{ !steps.restore.outputs.cache-hit || steps.restore.outputs.cache-hit == 'false' }}
       shell: pwsh
       run: >-
-        curl --silent --failure --show-error
+        curl --silent --fail --show-error
         --location
         --remote-name
         --output-dir ${{runner.temp}}
