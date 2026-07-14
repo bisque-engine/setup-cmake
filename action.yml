@@ -75,7 +75,7 @@ runs:
         Add-Content
         -Encoding UTF8
         -Path "${env:GITHUB_PATH}"
-        -Value (Get-ChildItem "${{runner.temp}}/${{steps.information.outputs.path}}/bin")
+        -Value "${{runner.temp}}/${{steps.information.outputs.path}}/bin"
     - name: Show Known CMake Locations
       shell: pwsh
       run: Get-Command -All cmake
