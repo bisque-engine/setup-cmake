@@ -35,7 +35,8 @@ runs:
         Add-Content @Arguments -Value "archive=$($Asset.name)"
         Add-Content @Arguments -Value "url=$($Asset.url)"
         Add-Content @Arguments -Value "key=$($Asset.id)"
-    - run: echo "${{toJson(steps.information.outputs)}}"
+    - shell: pwsh
+      run: echo "${{toJson(steps.information.outputs)}}"
     - name: Restore Cache
       id: restore
       uses: actions/cache/restore@v5
