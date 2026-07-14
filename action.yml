@@ -18,13 +18,11 @@ runs:
       id: information
       shell: pwsh
       run: |
-        $Arch = switch ("${{runner.arch}}") {
-          { $IsMacOS } { return "universal" }
-          "X64" { "x86_64" }
-          "ARM64" { if ($IsWindows) { $PSItem.ToLower() } else { "aarch64" } }
-          default {
-            Write-Output "::error title=Unsupported Platform::Unknown or Unsupported architecture"
-            exit 1
+        if ($IsMacOS) { Set-Variable -Name Arch -Value "universal" }
+        else {
+          $Arch = switch ("${{runner.arch}}") {
+            "X64" { "x86_64" }
+            "ARM64" { if ($IsWindows) { $PSItem.ToLower() } else { "aarch64" } }
           }
         }
         $Release = gh release view "${{inputs.cmake-version}}" --repo kitware/cmake --json tagName,assets
