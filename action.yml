@@ -29,13 +29,10 @@ runs:
         }
         echo "$Arch"
         $Release = gh release view "${{inputs.cmake-version}}" --repo kitware/cmake --json tagName,assets
+        echo $Release
         $Asset = [PSCustomObject](${Release}
                 | jq --arg os "${{runner.os}}" --arg arch "${Arch}" --from-file ${{github.action_path}}/assets.jq
                 | ConvertFrom-Json)
-        if ("${{runner.os}}" -eq "macOS") {
-          echo $Asset
-          Get-ChildItem Env:
-        }
         $Arguments = @{ Path = "${env:GITHUB_OUTPUT}"; Encoding = "UTF8" }
         Add-Content @Arguments -Value "archive=$($Asset.name)"
         Add-Content @Arguments -Value "url=$($Asset.url)"
