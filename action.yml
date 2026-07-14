@@ -38,12 +38,12 @@ runs:
         Add-Content @Arguments -Value "path=cmake-${{inputs.cmake-version}}-${Arch}"
     - name: Restore Cache
       id: restore
-      uses: actions/cache/restore@v5
+      uses: actions/cache/restore@v6
       with:
         path: ${{runner.temp}}/${{steps.information.outputs.archive}}
         key: ${{steps.information.outputs.key}}
     - name: Download Archive
-      if: ${{ !steps.restore.outputs.cache-hit || steps.restore.outputs.cache-hit == 'false' }}
+      if: steps.restore.outputs.cache-hit != 'true'
       shell: pwsh
       run: >-
         curl --silent --fail --show-error
@@ -52,8 +52,8 @@ runs:
         --output-dir ${{runner.temp}}
         "${{steps.information.outputs.url}}"
     - name: Save Archive
-      if: ${{ !steps.restore.outputs.cache-hit || steps.restore.outputs.cache-hit == 'false' }}
-      uses: actions/cache/save@v5
+      if: steps.restore.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v6
       with:
         path: ${{runner.temp}}/${{steps.information.outputs.archive}}
         key: ${{steps.information.outputs.key}}
