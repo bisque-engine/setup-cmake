@@ -31,9 +31,11 @@ runs:
         $Asset = [PSCustomObject](${Release}
                 | jq --arg os "${{runner.os}}" --arg arch "${Arch}" --from-file ${{github.action_path}}/assets.jq
                 | ConvertFrom-Json)
-        Add-Content -Path ${env:GITHUB_OUTPUT} -Value "archive=$($Asset.name)"
-        Add-Content -Path ${env:GITHUB_OUTPUT} -Value "url=$($Asset.url)"
-        Add-Content -Path ${env:GITHUB_OUTPUT} -Value "key=$($Asset.id)"
+        $Arguments = @{ Path = "${env:GITHUB_OUTPUT}"; Verbose = $true; Encoding =  "UTF8" }
+        Add-Content @Arguments -Value "archive=$($Asset.name)"
+        Add-Content @Arguments -Value "url=$($Asset.url)"
+        Add-Content @Arguments -Value "key=$($Asset.id)"
+    - run: echo "${{toJson(steps.information.outputs)}}"
     - name: Restore Cache
       id: restore
       uses: actions/cache/restore@v5
