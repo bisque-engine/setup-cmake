@@ -76,4 +76,6 @@ runs:
         -Encoding UTF8
         -Path "${env:GITHUB_PATH}"
         -Value (Get-ChildItem "${{runner.temp}}/${{steps.information.outputs.path}}/bin")
-        -Verbose
+    - name: Show CMake Version
+      shell: pwsh
+      run: cmake --version
