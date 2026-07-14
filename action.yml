@@ -73,5 +73,7 @@ runs:
       shell: pwsh
       run: >-
         Add-Content
+        -Encoding UTF8
         -Path "${env:GITHUB_PATH}"
         -Value (Get-ChildItem "${{runner.temp}}/${{steps.information.outputs.path}}/bin")
+        -Verbose
