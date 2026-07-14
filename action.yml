@@ -32,6 +32,7 @@ runs:
                 | jq --arg os "${{runner.os}}" --arg arch "${Arch}" --from-file ${{github.action_path}}/assets.jq
                 | ConvertFrom-Json)
         if ($IsMacOS) { Set-PSDebug -Trace 2 }
+        if ($IsMacOS) { echo $Asset }
         $Arguments = @{ Path = "${env:GITHUB_OUTPUT}"; Encoding = "UTF8" }
         Add-Content @Arguments -Value "archive=$($Asset.name)"
         Add-Content @Arguments -Value "url=$($Asset.url)"
